@@ -5,12 +5,12 @@ que siguen los servicios personales de Camilo. La guía (la skill
 `hexagonal-fastapi`) explica el criterio; `hexcheck` comprueba lo mecánico.
 
 ```bash
-uv add --dev "hexcheck @ git+https://github.com/CamiloGarcia06/hexcheck@v0.1.0"
+uv add --dev "hexcheck @ git+https://github.com/CamiloGarcia06/hexcheck@v0.2.0"
 uv run hexcheck                   # verifica el servicio actual
 uv run hexcheck --format github   # anotaciones en Actions
 uv run hexcheck --warn            # informa pero sale con 0 (repos en migración)
 
-uvx --from git+https://github.com/CamiloGarcia06/hexcheck@v0.1.0 hexcheck new tareas
+uvx --from git+https://github.com/CamiloGarcia06/hexcheck@v0.2.0 hexcheck new tareas
 cd tareas && uv sync && uv run hexcheck add tasks && task check
 ```
 
@@ -55,6 +55,16 @@ src/<app>/
   main.py             build_app(settings, deps): la única raíz de composición
 tests/<feature>/      fakes.py · test_<caso_de_uso>.py · test_repository.py · test_api.py
 ```
+
+Una funcionalidad **de infraestructura pura** (un cliente externo que usan
+varias, como `anki` o `model` en claude-fluent) lleva igual sus tres carpetas
+—`domain/` con su política y sus errores, `application/` puede quedar vacía— y
+se inyecta desde `main.py`: ninguna otra funcionalidad importa su
+infraestructura (H003).
+
+Errores de dominio → HTTP (`shared/api_errors.py`, fijado por
+`tests/test_api_errors.py`): `Unavailable` 503 · `Upstream` 502 · `NotFound`
+404 · `Conflict` 409 · `Invalid` 422 · el resto 400.
 
 ## Desarrollo
 

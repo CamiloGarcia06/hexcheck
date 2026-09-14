@@ -1,6 +1,6 @@
 [project]
 name = "hexcheck"
-version = "0.1.0"
+version = "0.2.0"
 description = "Verificador y esqueleto del estándar hexagonal-por-funcionalidad para servicios FastAPI personales"
 readme = "README.md"
 license = "MIT"

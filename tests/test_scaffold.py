@@ -24,6 +24,8 @@ def test_new_then_add_twice_passes_hexcheck(tmp_path: Path, monkeypatch: object)
     assert main(["new", "demo", "--dir", str(dest)]) == 0
     assert (dest / "src" / "demo" / "main.py").is_file()
     assert (dest / "pyproject.toml").is_file()
+    assert (dest / "tests" / "test_api_errors.py").is_file()
+    assert "deps: [check]" in (dest / "Taskfile.yml").read_text()
 
     assert main(["add", "items", "--root", str(dest)]) == 0
     assert main(["add", "subscription_renewals", "--root", str(dest)]) == 0
