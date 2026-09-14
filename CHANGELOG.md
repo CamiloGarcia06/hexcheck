@@ -1,5 +1,9 @@
 # Changelog
 
+## Sin publicar
+
+- Plantilla `ci.yml`: el job `deploy` llama a `~/srv/bin/deploy` como `camilo-cachy` vía `sudo -u` (el runner no toca `~/srv` con su propio usuario).
+
 ## v0.1.0 — 2026-09-13
 
 - Reglas H001-H010 y W001, con un fixture por regla.

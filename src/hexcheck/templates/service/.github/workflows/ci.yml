@@ -24,15 +24,20 @@ jobs:
       - run: git config user.email juancasangar@hotmail.com  # `task identity` mira la identidad local
       - run: task check
 
-  # Fase 3: descomentar cuando exista el runner en la torre (etiqueta `torre`).
+  # Despliegue automático: descomentar cuando exista el runner de la torre
+  # (etiqueta `torre`) registrado en este repo. Ver srv/RUNBOOK.md.
   # deploy:
   #   needs: check
   #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
   #   runs-on: [self-hosted, torre]
-  #   concurrency: deploy
+  #   concurrency:
+  #     group: deploy
+  #     cancel-in-progress: false
   #   steps:
   #     - uses: actions/checkout@v4
-  #     - run: |
+  #     - name: build image on the tower
+  #       run: |
   #         sha=$(git rev-parse --short=7 HEAD)
   #         docker build --build-arg GIT_SHA=$sha -t __NAME__:$sha -t __NAME__:latest .
-  #         bash ~/srv/bin/deploy __NAME__ $sha
+  #     - name: deploy
+  #       run: sudo -u camilo-cachy /home/camilo-cachy/srv/bin/deploy __NAME__ "$(git rev-parse --short=7 HEAD)"
