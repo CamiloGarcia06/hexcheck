@@ -14,6 +14,18 @@ class DomainError(Exception):
         self.message = message or self.code
 
 
+class Unavailable(DomainError):
+    """Algo de fuera no responde (una API, un servicio local): 503."""
+
+    code = "unavailable"
+
+
+class Upstream(DomainError):
+    """Algo de fuera respondió mal o falló a mitad (p. ej. un modelo): 502."""
+
+    code = "upstream"
+
+
 class NotFound(DomainError):
     code = "not_found"
 
