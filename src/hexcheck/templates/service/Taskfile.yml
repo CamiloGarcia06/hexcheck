@@ -1,0 +1,110 @@
+# Un comando por cosa; `task check` hace lo mismo en local y en CI. Nada bloquea commits.
+version: "3"
+
+vars:
+  APP: __APP__
+  SVC: __NAME__
+  PORT: 8000
+  PERSONAL_EMAIL: juancasangar@hotmail.com
+  GH_USER: CamiloGarcia06
+  SHA:
+    sh: git rev-parse --short=7 HEAD 2>/dev/null || echo dev
+
+tasks:
+  dev:
+    desc: servidor local con recarga (http://127.0.0.1:{{.PORT}})
+    cmds:
+      - uv run uvicorn {{.APP}}.main:app --factory --reload --port {{.PORT}}
+
+  fmt:
+    desc: formatea (nvim no lo hace al guardar)
+    cmds:
+      - uv run ruff format src tests
+      - uv run ruff check --fix src tests
+
+  lint:
+    cmds:
+      - uv run ruff format --check src tests
+      - uv run ruff check src tests
+
+  types:
+    cmds:
+      - uv run pyright
+
+  test:
+    cmds:
+      - uv run pytest
+
+  hex:
+    desc: verificador del estándar hexagonal
+    cmds:
+      - uv run hexcheck {{.CLI_ARGS}}
+
+  identity:
+    desc: la identidad git debe ser la personal
+    silent: true
+    cmds:
+      - |
+        email=$(git config user.email)
+        if [ "$email" != "{{.PERSONAL_EMAIL}}" ]; then
+          echo "identidad git: $email (esperaba {{.PERSONAL_EMAIL}}); ¿estás fuera de ~/Personal/?" >&2
+          exit 1
+        fi
+
+  check:
+    desc: todo lo que comprueba el CI, en el mismo orden
+    cmds:
+      - task: identity
+      - task: lint
+      - task: types
+      - task: test
+      - task: hex
+
+  migrate:
+    desc: aplica migraciones a la base local
+    cmds:
+      - uv run alembic upgrade head
+
+  new-migration:
+    desc: 'genera una migración: task new-migration -- "mensaje"'
+    cmds:
+      - uv run alembic revision --autogenerate -m "{{.CLI_ARGS}}"
+
+  build:
+    desc: imagen local {{.SVC}}:{{.SHA}}
+    cmds:
+      - docker build --build-arg GIT_SHA={{.SHA}} -t {{.SVC}}:{{.SHA}} -t {{.SVC}}:latest .
+
+  pr:
+    desc: push + PR con la cuenta personal de gh
+    cmds:
+      - |
+        login=$(gh api user -q .login)
+        if [ "$login" != "{{.GH_USER}}" ]; then
+          echo "gh está en la cuenta $login; ejecuta: gh auth switch -u {{.GH_USER}}" >&2
+          exit 1
+        fi
+      - git push -u origin HEAD
+      - gh pr create --fill
+
+  deploy:
+    desc: despliegue manual en la torre (mismo script que usará el runner)
+    preconditions:
+      - sh: '[ -z "$(git status --porcelain)" ]'
+        msg: "el árbol tiene cambios sin commitear"
+    cmds:
+      - git archive HEAD | ssh torre "docker build --build-arg GIT_SHA={{.SHA}} -t {{.SVC}}:{{.SHA}} -t {{.SVC}}:latest -"
+      - ssh torre "bash ~/srv/bin/deploy {{.SVC}} {{.SHA}}"
+
+  rollback:
+    desc: 'vuelve a un sha ya construido en la torre: task rollback SHA=abc1234'
+    cmds:
+      - ssh torre "bash ~/srv/bin/deploy {{.SVC}} {{.SHA}}"
+
+  logs:
+    cmds:
+      - ssh torre "cd ~/srv/{{.SVC}} && docker compose logs -f --tail=100"
+
+  status:
+    cmds:
+      - ssh torre "bash ~/srv/bin/status"

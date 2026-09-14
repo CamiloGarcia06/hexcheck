@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  fmt:
+    cmds:
+      - uv run ruff format src tests
+      - uv run ruff check --fix src tests
+  lint:
+    cmds:
+      - uv run ruff format --check src tests
+      - uv run ruff check src tests
+  types:
+    cmds:
+      - uv run pyright
+  test:
+    cmds:
+      - uv run pytest -q
+  check:
+    desc: lo mismo que el CI
+    cmds:
+      - task: lint
+      - task: types
+      - task: test
+  fixtures:
+    desc: regenera tests/fixtures
+    cmds:
+      - uv run python tests/fixtures/generate.py

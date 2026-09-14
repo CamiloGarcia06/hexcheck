@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+      - run: uv sync --frozen
+      - run: git config user.email juancasangar@hotmail.com  # `task identity` mira la identidad local
+      - run: task check
+
+  # Fase 3: descomentar cuando exista el runner en la torre (etiqueta `torre`).
+  # deploy:
+  #   needs: check
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   runs-on: [self-hosted, torre]
+  #   concurrency: deploy
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: |
+  #         sha=$(git rev-parse --short=7 HEAD)
+  #         docker build --build-arg GIT_SHA=$sha -t __NAME__:$sha -t __NAME__:latest .
+  #         bash ~/srv/bin/deploy __NAME__ $sha

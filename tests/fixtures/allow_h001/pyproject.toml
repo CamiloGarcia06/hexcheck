@@ -1,0 +1,7 @@
+[project]
+name = "app"
+version = "0"
+
+[tool.hexcheck]
+src = "src/app"
+allow = ["src/app/items/domain/entities.py: H001 # legado, pendiente de migrar"]

@@ -1,0 +1,43 @@
+[project]
+name = "hexcheck"
+version = "0.1.0"
+description = "Verificador y esqueleto del estándar hexagonal-por-funcionalidad para servicios FastAPI personales"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Camilo García", email = "juancasangar@hotmail.com" }]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+hexcheck = "hexcheck.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.12",
+    "pyright>=1.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["tests/fixtures/*/", "src/hexcheck/templates"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
+include = ["src", "tests"]
+exclude = ["src/hexcheck/templates", "tests/fixtures"]
+strict = ["src/hexcheck"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["fixtures", ".venv"]
